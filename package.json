@@ -16,6 +16,7 @@
   "dependencies": {
     "anymatch": "^3.1.3",
     "balanced-match": "^4.0.4",
+    "bcrypt": "^6.0.0",
     "binary-extensions": "^2.3.0",
     "brace-expansion": "^5.0.6",
     "braces": "^3.0.3",
@@ -33,8 +34,10 @@
     "is-extglob": "^2.1.1",
     "is-glob": "^4.0.3",
     "is-number": "^7.0.0",
+    "jsonwebtoken": "^9.0.3",
     "minimatch": "^10.2.5",
     "mongoose": "^9.6.3",
+    "mongoose-aggregate-paginate-v2": "^1.1.4",
     "ms": "^2.1.3",
     "normalize-path": "^3.0.0",
     "picomatch": "^2.3.2",
