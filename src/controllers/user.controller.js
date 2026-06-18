@@ -14,7 +14,7 @@ const registerUser=asyncHandler(
     //remove password and refresh token field from response
     //check for user creation
     //if user created return res else return error
-    //
+    
 
     async(req,res)=>{
 console.log("FILES:", req.files);
@@ -35,6 +35,8 @@ console.log("FILES:", req.files);
         const existedUser=await User.findOne({
             $or:[{username},{email}]
         })
+
+        console.log(existedUser)
 
         if(existedUser)
         {
