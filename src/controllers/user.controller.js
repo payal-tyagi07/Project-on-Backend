@@ -52,6 +52,7 @@ const coverImageLocalPath = coverFile?.path;
         }
 
         const avatar=await uploadCloudinary(avatarLocalPath)
+        console.log("avatar response:", avatar);
         const coverImage=await uploadCloudinary(coverImageLocalPath)
 
         if(!avatar)
