@@ -15,22 +15,22 @@ try {
             throw new ApiError(401,"Unauthorized request")
         }
     
+        //check user token and our token that is in .env is verified or not
         const decodedToken=await jwt.verify(token,process.env.ACCESS_TOKEN_SECRET)
 
         console.log("Decoded Token:", decodedToken);
     
-        const user  =await User.findById(decodedToken?.id).select(
+        const user  =await User.findById(decodedToken?._id).select(
             "-password -refreshToken"
         )
-
-        console.log("User:", user);
     
         if(!user)
         {
-            
+
             throw new ApiError(401,"Invalid accessToken")
         }
     
+        //user now can be access using req.user
         req.user=user;
         next()
 } catch (error) {
