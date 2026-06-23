@@ -1,7 +1,7 @@
 import asyncHandler from "../utils/asyncHandler.js";
 import ApiError  from "../utils/apiError.js";
 import uploadCloudinary from "../utils/cloudinary.js";
-import{User} from "../models/user.model.js";
+import {User} from "../models/user.model.js";
 import ApiResponse from "../utils/ApiResponse.js"
 
 const generateAccessRefreshTokens=async (userId) =>{
@@ -117,35 +117,35 @@ const loginUser=asyncHandler(async (req,res) => {
 
     const{username,email,password}=req.body
 
-    if(!username && !email)
+    if(!(username || email))
     {
         throw new ApiError(400,"username or email is required")
     }
 
-    const userExisted=await User.findOne({
+    const user=await User.findOne({
         $or:[{email},{username}]
     })
 
-    if(!userExisted)
+    if(!user)
     {
         throw new ApiError(404,"user not found")
     }
 
-    const isPasswordValid = await userExisted.isPasswordCorrect(password)
+    const isPasswordValid = await user.isPasswordCorrect(password)
 
     if(!isPasswordValid)
     {
         throw new ApiError(401,"Invalid user Credentials")
     }
 
-    const {accessToken,refreshToken}=await generateAccessRefreshTokens(userExisted._id)
+    const {accessToken,refreshToken}=await generateAccessRefreshTokens(user._id)
 
-    const loggedInUser=await User.findById(userExisted._id).select("-password -refreshToken")
+    const loggedInUser=await User.findById(user._id).select("-password -refreshToken")
 
     //send cookies
     const options={
         httpOnly:true,
-        secure:true
+        secure:false
     }
 
     return res.status(200)
@@ -155,7 +155,7 @@ const loginUser=asyncHandler(async (req,res) => {
         new ApiResponse(
             200,
             {
-                userExisted: loggedInUser,refreshToken,accessToken,
+                user: loggedInUser,refreshToken,accessToken,
             },
             "User loggedIn Successfully"
         )
@@ -164,7 +164,7 @@ const loginUser=asyncHandler(async (req,res) => {
 
 
 const logoutUser=asyncHandler(async(req,res)=>{
-    User.findByIdAndUpdate(
+    await User.findByIdAndUpdate(
         req.user._id,
         {
             $set:{
@@ -179,19 +179,22 @@ const logoutUser=asyncHandler(async(req,res)=>{
     //remove cookies
     const options={
         httpOnly:true,
-        secure:true
+        secure:false
     }
 
     return res.status(200)
     .clearCookie("accessToken",options)
     .clearCookie("refreshToken",options)
     .json(
-        apiResponse(200,{},"user loggedout successfully")
+        new ApiResponse(200,{},"user loggedout successfully")
     )
 })
 
 
 
-export default registerUser;
-export default loginUser;
-export default logoutUser;
+
+export {
+    registerUser,
+    loginUser,
+    logoutUser
+};
