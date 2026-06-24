@@ -143,7 +143,7 @@ const loginUser=asyncHandler(async (req,res) => {
 
     const loggedInUser=await User.findById(user._id).select("-password -refreshToken")
 
-    //send cookies
+    //send cookies and generate new access token and refresh token
     const options={
         httpOnly:true,
         secure:false
@@ -219,7 +219,7 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
             throw new ApiError(401,"refresh token is expired or used")
         }
     
-        //generate new accesstoken and refresh token 
+        //generate new access token and refresh token 
         const options={
             httpOnly:true,
             secure:false
