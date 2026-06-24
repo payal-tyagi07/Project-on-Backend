@@ -116,6 +116,7 @@ const loginUser=asyncHandler(async (req,res) => {
     //if password is right we generate access token and refresh token
     //send tokens in cookies
 
+    //user enter these
     const{username,email,password}=req.body
 
     if(!(username || email))
@@ -239,12 +240,146 @@ const refreshAccessToken=asyncHandler(async(req,res)=>{
     } catch (error) {
         throw new ApiError(401,error?.message || "Invalid refresh token")
     }
-
 })
+
+//if user wants to change password it means user is logged in so we use req.user to get user
+const changeCurrentPassword=asyncHandler(async(req,res)=>{
+    //user enter these--
+    const {oldPassword,newPassword}=req.body
+
+    const user=await User.findById(req.user?._id)
+    
+    //using user.model.js function isPasswordCorrect
+    //check oldPassword and newPassword matches
+    const isPasswordCorrect=user.isPasswordCorrect(oldPassword)
+
+    if(!isPasswordCorrect)
+    {
+        throw new ApiError(400,"Invalid old password")
+    }
+
+    //new password go to mongoose database
+    user.password=newPassword
+    //save new password also in database 
+    await user.save({validateBeforeSave:false})
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200,{},"Password changed successfully")
+    )
+})
+
+//current user
+const getCurrentUser=asyncHandler(async (req,res)=>{
+    return res.status(200)
+    .json(
+        200,req.user,"current user fetched successfully"
+    )
+})
+
+//update other details of user if developer(us) wants
+const updateAccountDetails=asyncHandler(async(req,res)=>{
+    const {fullName,email} = req.body
+
+    if(!(fullName || email))
+    {
+        throw new ApiError(400,"All fields are required")
+    }
+
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                fullName:fullName,
+                email:email
+            }
+        },
+        {new:true}
+    ).select("-password")
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200,user,"email and fullName updated")
+    )
+})
+
+
+//update Avatar after login it can possible only
+const updateUserAvatar=asyncHandler(async(req,res)=>{
+    const avatarLocalPath=req.file?.path
+
+    if(!avatarLocalPath)
+    {
+        throw new ApiError(400,"Avatar file is missing")
+    }
+
+    const avatar=await uploadCloudinary(avatarLocalPath)
+
+    if(!avatar.url){
+        throw new ApiError(400,"Error while uploading on avatar")
+    }
+
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                avatar:avatar.url
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password")
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200,user,"Avatar updated Succesfully")
+    )
+})
+
+
+//update coverImage after login it can possible only
+const updateUserCoverImage=asyncHandler(async(req,res)=>{
+    const coverImageLocalPath=req.file?.path
+
+    if(!coverImageLocalPath)
+    {
+        throw new ApiError(400,"Avatar file is missing")
+    }
+
+    const coverImage=await uploadCloudinary(coverImageLocalPath)
+
+    if(!coverImage.url){
+        throw new ApiError(400,"Error while uploading on avatar")
+    }
+
+    const user=await User.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{
+                coverImage:coverImage.url
+            }
+        },
+        {
+            new:true
+        }
+    ).select("-password")
+
+    return res.status(200)
+    .json(
+        new ApiResponse(200,user,"Cover Image updated Succesfully")
+    )
+})
+
 
 export {
     registerUser,
     loginUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAccountDetails,
+    updateUserAvatar,
+    updateUserCoverImage
 };
